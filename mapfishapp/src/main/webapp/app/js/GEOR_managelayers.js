@@ -718,6 +718,38 @@ GEOR.managelayers = (function() {
         };
     };
 
+    /**
+     * Method: checkInRange
+     * Checks if a layer is in range (correct scale) and modifies node
+     * rendering consequently
+     */
+    var checkInRange = function(node) {
+        if (!node.layer) {
+            return;
+        }
+        var n = node,
+            map = n.layer.map,
+            scale = map.getScale(),
+            r = layerStore.getByLayer(n.layer),
+            minScale = r.get('minScale'),
+            maxScale = r.get('maxScale');
+        if (n.getUI().rendered) {
+            //var actions = Ext.select(".gx-tree-layer-actions img", true, n.getUI().elNode);
+            //actions.setVisibilityMode(Ext.Element.DISPLAY);
+            //var zoomToScale = Ext.select(".gx-tree-layer-actions img.zoomtoscale", true, n.getUI().elNode);
+
+            if ((minScale && minScale < scale) || (maxScale && maxScale > scale)) {
+                n.getUI().addClass("geor-tree-layer-outofrange");
+                //actions.hide();
+                //zoomToScale.show();
+            } else if (minScale || maxScale) {
+                n.getUI().removeClass("geor-tree-layer-outofrange");
+                //actions.show();
+                //zoomToScale.hide();
+            }
+        }
+    };
+
     /*
      * Public
      */
@@ -794,6 +826,13 @@ GEOR.managelayers = (function() {
                         }],
                         component: createLayerNodePanel
                     }
+                }
+            });
+
+            // handle "visible at this range" checks
+            layerStore.map.events.on({
+                "zoomend": function() {
+                    layerContainer.cascade(checkInRange);
                 }
             });
 
