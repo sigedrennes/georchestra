@@ -137,6 +137,7 @@ Script Writing Resources
 
 > The scripting language used for in the GenerateConfig.groovy is the [Groovy](http://groovy.codehaus.org/) programming language.  It is based on the Java language and most java syntax will work in Groovy as well.  But Groovy is dynamic and has several conveniences that make it better for scripting than java.  It is pretty easy to use Google to find information about Groovy but hopefully the examples provided in this document and the Javadocs will provide a good introduction to the most common tasks needed.
 
+'''Note:''' Javadocs are generated when the config module is built and can be viewed in config\target\site\apidocs\index.html
 
 ### Create new file
 This example shows one way of creating file objects and writing to the file
@@ -391,3 +392,26 @@ Or one can add a profile to <root>/pom.xml that declares the properties when the
     mvn install -Ptemplate
     
 See (http://maven.apache.org/guides/introduction/introduction-to-profiles.html) for more on maven profiles.
+
+Post Treatment Script
+=====================
+
+Consider minification of javascript files in Geonetwork.  In geonetwork minification is done by Yui and the definitions are in the 
+in the pom.xml.  As a result a configuration cannot add files to be minified because maven will not recognize the changes.  To overcome this limitation
+the Georchestra build system has will run a PostTreatment script if it is defined for that project.
+
+To declare a Post Treatment script, create a PostTreatment.groovy file in the project's configuration directory.  
+
+For example, to define a Post Treatment script for geonetwork-client in a project "template". 
+Create the file: config/configurations/template/geonetwork-client/PostTreatment.groovy.  This file should have the class:
+
+    class PostTreatment {
+	    def run(def project, def log, def ant, def basedirFile, 
+			def target, def subTarget, def targetDir) {
+				...
+			}
+	}
+
+The file can also be generated and written to: conf/target/generated/geonetwork-client.
+
+These scripts will have access to the same classes the GenerateConfig scripts do.  

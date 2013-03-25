@@ -139,6 +139,10 @@
 			</resource>
 		</resources>
 		<plugins>
+		<plugin>
+			<groupId>org.codehaus.groovy.maven</groupId>
+			<artifactId>gmaven-plugin</artifactId>
+		</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
