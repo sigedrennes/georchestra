@@ -1,69 +1,92 @@
 class FileSet {
 
-	def project
+	String project
 	private def sources = []
 
 	def each(Closure c) {
-		sources.each { s ->
-			if(s instanceof D) {
-				s.each(c)
-			} else if (s instanceof F){
-				c(s.file)
-			} else {
-				throw new AssertionError("FileSet source was not a known time.  It was a "+s.class.name)
-			}
+		sources.each {
+			it.eachFile(c) 
 		}
 	}
 	
-	FileSet dir(File dir, Closure filter, Closure sort) {
-		sources << new D(dir, filter, sort)
-		return this
-	}
-	FileSet dir(String dir, Closure filter, Closure sort) {
-		sources << new D(new File(dir), filter, sort)
-		return this
-	}
-
-	File file (File file) {
-		sources << new F(file)
-		return this
-	}
-
-	File file (String file) {
-		sources << new F(new File(file))
-		return this
-	}
-
-	private class F {
-		File file
-	}
-	
-	private class D {
-		File dir
-		Closure filter
-		Closure sort
+	private def resolve(def source) {
+		def s
 		
-		def each (Closure c) {
-			if(sort != null) {
-				def files = new new TreeSet(new Comparator() {
-					public int compare(T o1, T o2) {
-						return sort(o1,o2)
-					}
-				})
-				dir.eachFileRecurse { file ->
-					if(filter(file)) {
-						files.add(file)
-					}
-				}
-				
-				files.each( c(it) )
-			} else {
-				dir.eachFileRecurse { file ->
-					if(filter(file)) {
+		if (source instanceof File) {
+			s = source
+		} else {
+			s = new File(source.toString())
+		}
+		def outFile
+		if(project != null) {
+			outFile = new File(Parameters.get.basedirFile.parent+("/$project/$s").replace('/', File.separator))
+		} else {
+			outFile = s
+		}
+		
+		if (!outFile.exists()) {
+			throw new AssertionError("$outFile does not exist. Check definition of FileSet")
+		}
+		
+		return outFile
+
+	}
+	FileSet descendants(def source, Closure filter = null, Closure sort = null) {
+		dir (source, true, filter, sort)
+	}
+
+	FileSet children(def source, Closure filter = null, Closure sort = null) {
+		dir (source, false, filter, sort)
+	}
+	private FileSet dir(def source, Boolean recurse = true, Closure filter = null, Closure sort = null) {
+		if(filter == null) {
+			filter = { f -> true }
+		}
+		if (recurse == null) {
+			recurse = true
+		}
+		def processDir = { c ->
+			if (recurse) {
+				resolve(source).eachFileRecurse { file ->
+					if (filter(file)) {
 						c(file)
 					}
 				}
-				
+			} else {
+				resolve(source).eachFile { file ->
+					if (filter(file)) {
+						c(file)
+					}
+				}		
 			}
 		}
+		sources << [
+			eachFile: { c ->
+				if(sort != null) {
+					def files = new TreeSet([compare: { o1, o2 ->
+							return sort(o1,o2)
+						}] as Comparator)
+					
+					processDir {files.add(it)}
+					
+					files.each { c(it) }
+				} else {
+					processDir (c)
+				}
+			}
+		]
+		return this
 	}
+
+	FileSet file (def source) {
+		sources << [
+			eachFile: { c ->
+				c(resolve(source))
+			}
+		]
+		return this
+	}
+
+
+
+}

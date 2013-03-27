@@ -1,8 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-  <classpathentry kind="src" path="defaults" excluding="shared.maven.filters|**/*.java"/>
-  <classpathentry kind="src" path="configurations/c2cpc61" excluding="build_support/**|**/*.java"/>
-  <classpathentry kind="src" path="target/generated" excluding="/shared.maven.filters|**/*.java"/>
+  <classpathentry kind="src" path="src/main/scripts" including="**/*.java"/>
+  <classpathentry kind="src" path="defaults" excluding="shared.maven.filters|*.class|*.jar|*.png|*.gif|*.bmp|*.png*|*.exe|*.jpg|*.jpeg|*.ico|*.odg|*.swf|*.doc|**/*.java"/>
+  <classpathentry kind="src" path="configurations/template" excluding="build_support/**|*.class|*.jar|*.png|*.gif|*.bmp|*.png*|*.exe|*.jpg|*.jpeg|*.ico|*.odg|*.swf|*.doc|**/*.java"/>
+  <classpathentry kind="src" path="target/generated" excluding="/shared.maven.filters|*.class|*.jar|*.png|*.gif|*.bmp|*.png*|*.exe|*.jpg|*.jpeg|*.ico|*.odg|*.swf|*.doc|**/*.java"/>
+  <classpathentry kind="src" path="src/main" including="**/*.groovy" excluding="**/*.java"/>
   <classpathentry kind="output" path="target/classes"/>
-  <classpathentry kind="var" path="M2_REPO/junit/junit/4.8/junit-4.8.jar"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/4.8/junit-4.8.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/yahoo/platform/yui/yuicompressor/2.4.7/yuicompressor-2.4.7.jar"/>
+  <classpathentry kind="var" path="M2_REPO/rhino/js/1.6R7/js-1.6R7.jar"/>
 </classpath>

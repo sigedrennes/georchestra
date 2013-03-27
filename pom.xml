@@ -21,7 +21,21 @@
     <confdir>${project.build.directory}/conf</confdir>
     <encoding>UTF-8</encoding>
     <georchestra.version>${project.version}</georchestra.version>
-    <!--<gmaven.runtime>1.8</gmaven.runtime>-->
+    <postTreatmentScript><![CDATA[
+def server=project.properties['server']
+def subTarget=project.properties['subTarget']
+						
+def params = new Parameters(
+    project: project,
+	target: server,
+	subTarget: subTarget,
+	log: log,
+	ant: ant
+)
+params.init(false)
+
+new PostTreatment().run(this, log, ant, project.basedir, params.projectDir, server, subTarget, project.build.directory)
+]]></postTreatmentScript>
   </properties>
   <modules>
     <module>config</module>
@@ -62,30 +76,42 @@
 		    <version>1.0</version>
 			<executions>
 				<execution>
-					<id>generate-config-files</id>
+					<id>create-missingpost-treatment</id>
+					<phase>prepare-package</phase>
+					<goals>
+						<goal>execute</goal>
+					</goals>
+					<configuration>
+						<source><![CDATA[
+def confDir = new File(project.build.directory, "conf")
+def treatmentFile = new File(confDir, project.artifactId+"/PostTreatment.groovy")
+if(confDir.exists() && !treatmentFile.exists()){
+	treatmentFile.parentFile.mkdirs()
+	treatmentFile << """
+class PostTreatment {
+	def run(def project, def log, def ant, def basedirFile, def configDir,
+					def target, def subTarget, def targetDir) {
+			log.info("No post treatment required for this project")
+		}
+}
+"""
+}
+
+						]]></source>
+					</configuration>
+				</execution>
+				<execution>
+					<id>post-treatment-script</id>
 					<phase>prepare-package</phase>
 					<goals>
 						<goal>execute</goal>
 					</goals>
 					<configuration>
 						<scriptpath>
-							<element>${confdir}</element>
+							<element>${project.build.directory}/conf/${project.artifactId}</element>
+							<element>${project.build.directory}/conf/scripts</element>
 						</scriptpath>
-						<source><![CDATA[
-						println("name"+project.name)
-def postTreatment = "PostTreatment"
-try {
-	def cls = Class.forName("$postTreatment")
-	log.info("Running post treatment script")
-	def server =  project.properties ['server']
-	def subTarget =  project.properties ['sub.target']
-	cls.getMethods().find(it.name == "run").invoke(cls.newInstance(), log, ant, project.basedir, "$server", "$subTarget", project.build.dir)
-} catch (Throwable e) {
-	def scriptdir = project.properties ['confdir']
-	log.info("No $postTreatment script in $scriptdir. Skipping post treatment..."+e)
-}
-		]]>
-						</source>
+						<source>${postTreatmentScript}</source>
 					</configuration>
 				</execution>
 			</executions>
@@ -344,7 +370,7 @@ try {
       <name>OpenGeo Maven Repository</name>
       <url>http://repo.opengeo.org/</url>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </snapshots>
     </repository>
     <repository>
