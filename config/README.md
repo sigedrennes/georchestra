@@ -327,6 +327,64 @@ One can also download several jars with one declaration by using the 'artifacts'
       ],
       to: 'geoserver-webapp/WEB-INF/lib').download()
 
+### FileSet
+
+A FileSet represents a set of files.  It can be the files in a directory, a single file or all descendants of a directory.
+If the file set contains several files a sort and a filter can be applied to the files
+
+<b>Note:</b> sorting the files requires loading all the files into memory and sorting.  This is both slower and 
+requires more memory.
+
+<b>Note:</b> Sorting only applies to a single source.  Not to all files in the file set.
+ 
+Examples:
+ 
+    // Represents all js files that are descendants of
+    // $basedirFile/src/main/resources/georchestra/js
+    // all directories are recursively visited
+    new FileSet().descendants(
+      source:"$basedirFile/src/main/resources/georchestra/js", 
+      filter:{ it.name.endsWith("*.js") }
+ 	)
+ 
+    // Represents a single file
+    new FileSet().file("App.js")
+
+    // Represents the js files directly (not recursively) in the 
+    // "web-client/src/main/resources/app/search/js" of the geonetwork project
+    // files are sorted by lastmodified date
+    new FileSet(project: "geonetwork").children(
+      source: "web-client/src/main/resources/app/search/js",
+      filter: {it.name.endsWith("*js")},
+      sort: {o1, o2 -> o1.lastModified() - o2.lastModified}
+    )
+
+    // A fileset with first App.js then all js files in geonetwork directory
+    new FileSet().
+      file("App.js").
+      children(
+        source:"geonetwork", 
+        filter: {it.name.endsWith(".js)}
+      )
+
+The each method can be used to iterate through all the files and perform an action on each file in the FileSet
+
+### Minify
+
+The Minify class is a useful class for minifying either Javascript or CSS files into a single file.
+
+Example:
+
+	new Minify(
+			sources: [
+				new FileSet().descendants(
+					source:"$basedirFile/src/main/resources/georchestra/js", 
+					filter:{ it.name.endsWith("*.js") }
+				)
+			],
+			output: "$targetDir/classes/apps/georchestra/js/Minified.js")
+	}
+	  
 ### Execute an ant task
 
 Groovy provides a class called the [AntBuilder](http://groovy.codehaus.org/Using+Ant+from+Groovy).  An instance is passed to the GenerateConfig class.  The following example copies the config/configurations/<target>/build_support/geonetwork-main directory to /target/generated
@@ -434,3 +492,16 @@ These scripts will have access to the same classes the GenerateConfig scripts do
  
 Since one of the more common tasks will be to add a minification step the following example illustrates how to do this.
 
+	class PostTreatment {
+		def run(def project, def log, def ant, def basedirFile, def configDir,
+					def target, def subTarget, def targetDir) {
+			new Minify(
+				sources: [
+					new FileSet().descendants(
+						source:"$basedirFile/src/main/resources/georchestra/js", 
+						filter:{ it.name.endsWith("*.js") }
+					)
+				],
+				output: "$targetDir/classes/apps/georchestra/js/Minified.js")
+		}
+	}
