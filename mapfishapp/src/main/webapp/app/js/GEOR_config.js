@@ -276,6 +276,24 @@ GEOR.config = (function() {
         CSW_GETDOMAIN_SORTING: getCustomParameter("CSW_GETDOMAIN_SORTING",
             false),
 
+
+
+        /**
+         * Constant: CSW_FILTERS
+         * 'property operator value' list to filter the CSW plain text queries.
+         * Beware, use single space as separator. The wildcard is *
+         * ${w} is replaced by the words in the plain text query (one filter for each word)
+         * Defaults to [
+            ['AnyText ~ *wms*', // better relevance for wms layers
+            'type ==  dataset',  // match dataset vs service
+            'AnyText ~ *${w}*'] // match plain text for any property
+         */
+        CSW_FILTERS: getCustomParameter("CSW_FILTERS", [
+            'AnyText ~ *wms*',
+            'type == dataset',
+            'AnyText ~ *${w}*'
+        ]),
+
         /**
          * Constant: THESAURUS_NAME
          * Thesaurus name to display for the CSW GetDomain request.

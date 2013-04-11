@@ -512,32 +512,34 @@ Ext.app.FreetextField = Ext.extend(Ext.form.TwinTriggerField, {
         // see http://osgeo-org.1560.n6.nabble.com/CSW-GetRecords-problem-with-spaces-tp3862749p3862750.html
         var v = this.getValue(),
             words = v.replace(new RegExp("[,;:/%()*!.\\[\\]~&=]","g"), ' ').split(' '),
-            // adding wms in the filters list helps getting records where a WMS layer is referenced:
-            filters = [
-                // improve relevance of results: (might not be relevant with other csw servers than geonetwork)
-                new OpenLayers.Filter.Comparison({
-                    type: "~",
-                    property: "AnyText",
-                    value: '*wms*'
-                }),
-                // do not request dc:type = service, just dc:type = dataset
-                new OpenLayers.Filter.Comparison({
-                    type: "~",
-                    property: "type",
-                    value: 'dataset'
-                })
-            ];
-        Ext.each(words, function(word) {
-            if (word) {
-                filters.push(
-                    new OpenLayers.Filter.Comparison({
-                        type: "~",
-                        property: "AnyText",
-                        value: '*'+word+'*'
-                    })
-                );
+                filters = [];
+        
+        Ext.each(GEOR.config.CSW_FILTERS, 
+            function(filterstr) {
+                var filterargs = filterstr.split(' ', 3);
+                if (filterargs[2].search('${w}')>-1) {
+                    Ext.each(words, function(word) {
+                        filters.push(
+                            new OpenLayers.Filter.Comparison({
+                                property: filterargs[0],
+                                type: filterargs[1],
+                                value: filterargs[2].replace('${w}',word)
+                            })
+                        );
+                    });
+                } else {
+                    filters.push(
+                        new OpenLayers.Filter.Comparsion({
+                            property: filterargs[0],
+                            type: filterargs[1],
+                            value: filterargs[2]
+                        })
+                    );
+                }
             }
-        });
+        );
+
+
         if (filters.length == 1) {
             return filters[0];
         } else {
