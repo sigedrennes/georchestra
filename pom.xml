@@ -203,6 +203,12 @@ class PostTreatment {
         <server>localhost</server>
       </properties>
     </profile>
+    <profile>
+      <id>sigrennes</id>
+      <properties>
+        <server>sigrennes</server>
+      </properties>
+    </profile>
 
     <profile>
       <id>pigma_int</id>
