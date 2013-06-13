@@ -149,7 +149,23 @@ GEOR.toolbar = (function() {
         }
 
         items.push('->');
-
+        var btn = new Ext.Button({
+            text: OpenLayers.i18n('basculer le fond de plan'),
+            handler: function(){
+            	var layerCadastre = map.getLayersByName('cadastre')[0];
+            	if(layerCadastre.getVisibility()){
+            		layerCadastre.setVisibility(false);
+            		
+            	}
+            	else
+            	{
+            		layerCadastre.setVisibility(true);
+            		
+            	}
+            }
+            });
+        items.push(btn);    
+            
         if (GEOR.header === false) {
             // insert a login or logout link in the toolbar
             var login_html = '<div style="margin-right:1em;font:11px tahoma,verdana,helvetica;"><a href="' + GEOR.config.LOGIN_URL +
